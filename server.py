@@ -29,6 +29,12 @@ tokens = [
 ]
 
 class SilentProxyHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+    
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'Colonel Server Active & Healthy!')
+
     def do_POST(self):
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length)
@@ -47,7 +53,6 @@ class SilentProxyHandler(BaseHTTPRequestHandler):
 
             user_id_val = user.get('id')
             
-           
             parsed_user_id = None
             if user_id_val is not None and str(user_id_val).isdigit():
                 parsed_user_id = int(user_id_val)
