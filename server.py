@@ -14,7 +14,7 @@ try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         print("[+] Supabase client initialized successfully.")
     else:
-        print("[!] Supabase credentials not configured. Running in local-only storage mode.")
+        print("[!] Supabase credentials not configured or invalid. Running in local-only storage mode.")
 except Exception as e:
     print("[-] Warning: Failed to initialize Supabase client:", e)
     supabase = None
@@ -31,6 +31,8 @@ tokens = [
 
 class SilentProxyHandler(BaseHTTPRequestHandler):
     def do_POST(self):
+        content_length = int(os.environ.get('Content-Length', self.headers.get('Content-Length', 0))) # Handle safely
+        
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length)
         
